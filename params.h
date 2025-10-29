@@ -17,7 +17,7 @@
 
 #include "mpool.h"
 
-#if defined(__linux__) || defined(_WIN32)
+#if defined(__linux__) || defined(_WIN32) || defined(__APPLE__)
 #define FAKE_SUPPORT 1
 #define TIMEOUT_SUPPORT 1
 #endif
