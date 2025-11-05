@@ -1,4 +1,4 @@
-TARGET = bin/libciadpi.a
+TARGET = libciadpi.a
 
 CPPFLAGS = -D_DEFAULT_SOURCE
 CFLAGS += -I. -std=c99 -O2 -Wall -Wno-unused -Wextra -Wno-unused-parameter -pedantic
