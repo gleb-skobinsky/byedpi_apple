@@ -435,7 +435,7 @@ void clear_params(void)
 }
 
 
-int main(int argc, char **argv) 
+int dpi_main(int argc, char **argv)
 {
     #ifdef _WIN32
     WSADATA wsa;
