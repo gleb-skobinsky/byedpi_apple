@@ -1,6 +1,7 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include "params.h"
 #include "error.h"
