@@ -3,7 +3,7 @@ TARGET = libciadpi.a
 CPPFLAGS = -D_DEFAULT_SOURCE
 CFLAGS += -I. -std=c99 -O2 -Wall -Wno-unused -Wextra -Wno-unused-parameter -pedantic
 
-HEADERS = conev.h desync.h error.h extend.h kavl.h mpool.h packets.h params.h proxy.h win_service.h utils.h main.h
+HEADERS = conev.h desync.h error.h extend.h kavl.h mpool.h packets.h params.h proxy.h win_service.h utils.h
 SRC = packets.c conev.c proxy.c desync.c mpool.c extend.c main.c utils.c
 
 OBJ = $(SRC:.c=.o)
