@@ -1,31 +1,25 @@
-TARGET = libciadpi.a
+TARGET = ciadpi
 
 CPPFLAGS = -D_DEFAULT_SOURCE
-CFLAGS += -I. -std=c99 -O2 -Wall -Wno-unused -Wextra -Wno-unused-parameter -pedantic
+CFLAGS += -I. -std=c99 -Wall -Wno-unused -O2
+WIN_LDFLAGS = -lws2_32 -lmswsock
 
-HEADERS = conev.h desync.h error.h extend.h kavl.h mpool.h packets.h params.h proxy.h win_service.h utils.h
-SRC = packets.c conev.c proxy.c desync.c mpool.c extend.c main.c utils.c
+SRC = packets.c main.c conev.c proxy.c desync.c mpool.c extend.c
+WIN_SRC = win_service.c
 
 OBJ = $(SRC:.c=.o)
+WIN_OBJ = $(WIN_SRC:.c=.o)
 
-PREFIX := /usr/local
-INSTALL_DIR := $(DESTDIR)$(PREFIX)/lib/
-
-all: static
-
-static: $(TARGET)
+all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	ar rcs $(TARGET) $(OBJ)
+	$(CC) -o $(TARGET) $(OBJ) $(LDFLAGS)
 
-$(OBJ): $(HEADERS)
+windows: $(OBJ) $(WIN_OBJ)
+	$(CC) -o $(TARGET).exe $(OBJ) $(WIN_OBJ) $(WIN_LDFLAGS)
 
 .c.o:
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $<
 
 clean:
-	rm -f $(TARGET) $(OBJ)
-
-install: $(TARGET)
-	mkdir -p $(INSTALL_DIR)
-	install -m 644 $(TARGET) $(INSTALL_DIR)
+	rm -f $(TARGET) $(TARGET).exe $(OBJ) $(WIN_OBJ)
