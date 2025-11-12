@@ -16,11 +16,15 @@ void reset_params(void) {
     params = default_params;
 }
 
-extern const struct option options[38];
+extern const struct option options[];
+extern const size_t options_count;
 
-int parse_args(int argc, char **argv)
-{
-    int optc = sizeof(options)/sizeof(*options);
+int parse_args(int argc, char **argv) {
+    printf("Parse args start");
+    if (argc <= 0 || argv == NULL)
+        return -1;
+
+    int optc = (int) options_count;
     for (int i = 0, e = optc; i < e; i++)
         optc += options[i].has_arg;
 
@@ -34,6 +38,7 @@ int parse_args(int argc, char **argv)
             opt[o] = ':';
         }
     }
+    printf("Optc check successful %d\n", optc);
 
     params.laddr.sin6_port = htons(1080);
 
@@ -43,7 +48,7 @@ int parse_args(int argc, char **argv)
     long val;
     char *end = 0;
 
-    struct desync_params *dp = add((void *)&params.dp,
+    struct desync_params *dp = add((void *) &params.dp,
                                    &params.dp_count, sizeof(struct desync_params));
     if (!dp) {
         reset_params();
@@ -78,7 +83,7 @@ int parse_args(int argc, char **argv)
 
             case 'i':
                 if (get_addr(optarg,
-                             (struct sockaddr_ina *)&params.laddr) < 0)
+                             (struct sockaddr_ina *) &params.laddr) < 0)
                     invalid = 1;
                 break;
 
@@ -92,13 +97,13 @@ int parse_args(int argc, char **argv)
 
             case 'I':
                 if (get_addr(optarg,
-                             (struct sockaddr_ina *)&params.baddr) < 0)
+                             (struct sockaddr_ina *) &params.baddr) < 0)
                     invalid = 1;
                 break;
 
             case 'b':
                 val = strtol(optarg, &end, 0);
-                if (val <= 0 || val > INT_MAX/4 || *end)
+                if (val <= 0 || val > INT_MAX / 4 || *end)
                     invalid = 1;
                 else
                     params.bfsize = val;
@@ -106,7 +111,7 @@ int parse_args(int argc, char **argv)
 
             case 'c':
                 val = strtol(optarg, &end, 0);
-                if (val <= 0 || val >= (0xffff/2) || *end)
+                if (val <= 0 || val >= (0xffff / 2) || *end)
                     invalid = 1;
                 else
                     params.max_open = val;
@@ -118,14 +123,14 @@ int parse_args(int argc, char **argv)
                     invalid = 1;
                 break;
 
-            // desync options
+                // desync options
 
             case 'F':
                 params.tfo = 1;
                 break;
 
             case 'A':
-                dp = add((void *)&params.dp, &params.dp_count,
+                dp = add((void *) &params.dp, &params.dp_count,
                          sizeof(struct desync_params));
                 if (!dp) {
                     reset_params();
@@ -220,9 +225,8 @@ int parse_args(int argc, char **argv)
             case 'd':
             case 'o':
             case 'q':
-            case 'f':
-                ;
-                struct part *part = add((void *)&dp->parts,
+            case 'f':;
+                struct part *part = add((void *) &dp->parts,
                                         &dp->parts_n, sizeof(struct part));
                 if (!part) {
                     reset_params();
@@ -233,15 +237,20 @@ int parse_args(int argc, char **argv)
                     break;
                 }
                 switch (rez) {
-                    case 's': part->m = DESYNC_SPLIT;
+                    case 's':
+                        part->m = DESYNC_SPLIT;
                         break;
-                    case 'd': part->m = DESYNC_DISORDER;
+                    case 'd':
+                        part->m = DESYNC_DISORDER;
                         break;
-                    case 'o': part->m = DESYNC_OOB;
+                    case 'o':
+                        part->m = DESYNC_OOB;
                         break;
-                    case 'q': part->m = DESYNC_DISOOB;
+                    case 'q':
+                        part->m = DESYNC_DISOOB;
                         break;
-                    case 'f': part->m = DESYNC_FAKE;
+                    case 'f':
+                        part->m = DESYNC_FAKE;
                 }
                 break;
 
@@ -305,8 +314,7 @@ int parse_args(int argc, char **argv)
                 val = parse_cform(dp->oob_char, 1, optarg, strlen(optarg));
                 if (val != 1) {
                     invalid = 1;
-                }
-                else dp->oob_char[1] = 1;
+                } else dp->oob_char[1] = 1;
                 break;
 
             case 'M':
@@ -332,7 +340,7 @@ int parse_args(int argc, char **argv)
                 break;
 
             case 'r':
-                part = add((void *)&dp->tlsrec,
+                part = add((void *) &dp->tlsrec,
                            &dp->tlsrec_n, sizeof(struct part));
                 if (!part) {
                     reset_params();
@@ -396,7 +404,7 @@ int parse_args(int argc, char **argv)
                 params.wait_send = 0;
                 break;
 #ifdef __linux__
-            case 'P':
+                case 'P':
                 params.protect_path = optarg;
                 break;
 #endif
@@ -419,7 +427,7 @@ int parse_args(int argc, char **argv)
         return -1;
     }
     if (dp->hosts || dp->proto || dp->pf[0]) {
-        dp = add((void *)&params.dp,
+        dp = add((void *) &params.dp,
                  &params.dp_count, sizeof(struct desync_params));
         if (!dp) {
             reset_params();
@@ -443,5 +451,10 @@ int parse_args(int argc, char **argv)
         return -1;
     }
 
+    return 0;
+}
+
+int debug_print_args(int argc, char **argv) {
+    for (int i = 0; i < argc; ++i) printf("arg %d = %s\n", i, argv[i] ? argv[i] : "(null)");
     return 0;
 }

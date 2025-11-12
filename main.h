@@ -21,3 +21,5 @@ size_t parse_cform(char *buffer, size_t blen,
 struct mphdr *parse_hosts(char *buffer, size_t size);
 
 int parse_offset(struct part *part, const char *str);
+
+const size_t options_count;
