@@ -160,7 +160,9 @@ const struct option options[] = {
     #endif
     {0}
 };
-    
+
+
+const size_t options_count = sizeof(options)/sizeof(*options);
 
 size_t parse_cform(char *buffer, size_t blen, 
         const char *str, size_t slen)
