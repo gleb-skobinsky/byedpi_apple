@@ -55,7 +55,13 @@ int parse_args(int argc, char **argv) {
         return -1;
     }
 
-    optind = optreset = 1;
+    #ifdef __GLIBC__
+        // Linux / GNU libc
+        optind = 1;
+    #else
+        // macOS / BSD libc
+        optind = optreset = 1;
+    #endif
 
     while (!invalid && (rez = getopt_long(
             argc, argv, opt, options, 0)) != -1) {
