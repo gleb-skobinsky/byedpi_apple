@@ -935,7 +935,7 @@ int listen_socket(struct sockaddr_ina *srv) {
         fprintf(stderr, "setsockopt(SO_REUSEPORT) failed: %s\n", strerror(errno));
         // Not fatal: keep going, but log it
     } else {
-        printf("setsockopt(SO_REUSEPORT) success!")
+        printf("setsockopt(SO_REUSEPORT) success!");
     }
 #endif
     if (bind(srvfd, &srv->sa, SA_SIZE(srv)) < 0) {
