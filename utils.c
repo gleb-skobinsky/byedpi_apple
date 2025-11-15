@@ -20,7 +20,7 @@ extern const struct option options[];
 extern const size_t options_count;
 
 int parse_args(int argc, char **argv) {
-    printf("Parse args start");
+    printf("Parse args start\n");
     if (argc <= 0 || argv == NULL)
         return -1;
 
