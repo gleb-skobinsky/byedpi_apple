@@ -82,7 +82,7 @@ static inline char addr_equ(
 
 
 static inline int nb_socket(int domain, int type) {
-#ifdef __linux__
+#ifdef SOCK_NONBLOCK
     int fd = socket(domain, type | SOCK_NONBLOCK, 0);
 #else
     int fd = socket(domain, type, 0);
