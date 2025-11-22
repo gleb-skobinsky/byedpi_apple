@@ -63,7 +63,7 @@ int setttl(int fd, int ttl, int family) {
         actual_family = ss.ss_family;
     }
 
-    if (family == AF_INET) {
+    if (actual_family == AF_INET) {
         if (setsockopt(fd, IPPROTO_IP,
                        IP_TTL, (char *)&_ttl, sizeof(_ttl)) < 0) {
             uniperror("setsockopt IP_TTL");
