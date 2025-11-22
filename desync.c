@@ -4,26 +4,26 @@
 #include <string.h>
 
 #ifndef _WIN32
-    #include <unistd.h>
-    #include <time.h>
-    #include <sys/time.h>
-    #include <sys/socket.h>
-    #include <sys/mman.h>
-    #include <arpa/inet.h>
-    #include <fcntl.h>
-    
-    #ifndef __linux__
-    #include <netinet/tcp.h>
-    #else
-    #include <linux/tcp.h>
+#include <unistd.h>
+#include <time.h>
+#include <sys/time.h>
+#include <sys/socket.h>
+#include <sys/mman.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+
+#ifndef __linux__
+#include <netinet/tcp.h>
+#else
+#include <linux/tcp.h>
     #include <sys/sendfile.h>
     #include <linux/filter.h>
     #include <sys/syscall.h>
     
     #define memfd_create(name, flags) syscall(__NR_memfd_create, name, flags)
-    #endif
+#endif
 #else
-    #include <winsock2.h>
+#include <winsock2.h>
     #include <ws2tcpip.h>
     #include <mswsock.h>
 #endif
@@ -40,7 +40,7 @@ int get_family(struct sockaddr *dst)
     if (dst->sa_family == AF_INET6) {
         struct sockaddr_in6 *d6 = (struct sockaddr_in6 *)dst;
         static char *pat = "\0\0\0\0\0\0\0\0\0\0\xff\xff";
-        
+
         if (!memcmp(&d6->sin6_addr, pat, 12)) {
             return AF_INET;
         }
@@ -52,16 +52,16 @@ int get_family(struct sockaddr *dst)
 
 int setttl(int fd, int ttl, int family) {
     int _ttl = ttl;
-    
+
     if (family == AF_INET) {
         if (setsockopt(fd, IPPROTO_IP,
-                 IP_TTL, (char *)&_ttl, sizeof(_ttl)) < 0) {
+                       IP_TTL, (char *)&_ttl, sizeof(_ttl)) < 0) {
             uniperror("setsockopt IP_TTL");
             return -1;
         }
     }
     else if (setsockopt(fd, IPPROTO_IPV6,
-             IPV6_UNICAST_HOPS, (char *)&_ttl, sizeof(_ttl)) < 0) {
+                        IPV6_UNICAST_HOPS, (char *)&_ttl, sizeof(_ttl)) < 0) {
         uniperror("setsockopt IPV6_UNICAST_HOPS");
         return -1;
     }
@@ -97,8 +97,8 @@ int drop_sack(int fd)
 #ifndef _WIN32
 static inline void delay(long ms)
 {
-    struct timespec time = { 
-         .tv_nsec = ms * 1e6
+    struct timespec time = {
+            .tv_nsec = ms * 1e6
     };
     nanosleep(&time, 0);
 }
@@ -362,20 +362,20 @@ ssize_t send_fake(int sfd, char *buffer,
 #endif
 
 ssize_t send_oob(int sfd, char *buffer,
-        ssize_t n, long pos, char *c)
+                 ssize_t n, long pos, char *c)
 {
     char rchar = buffer[pos];
     buffer[pos] = c[1] ? c[0] : 'a';
-    
+
     ssize_t len = send(sfd, buffer, pos + 1, MSG_OOB);
     buffer[pos] = rchar;
-    
+
     if (len < 0) {
         uniperror("send");
         return -1;
     }
     wait_send_if_support(sfd);
-    
+
     len--;
     if (len != pos) {
         return len;
@@ -384,11 +384,11 @@ ssize_t send_oob(int sfd, char *buffer,
 }
 
 
-ssize_t send_disorder(int sfd, 
-        char *buffer, long pos, int fa)
+ssize_t send_disorder(int sfd,
+                      char *buffer, long pos, int fa)
 {
     int bttl = 1;
-    
+
     if (setttl(sfd, bttl, fa) < 0) {
         return -1;
     }
@@ -397,7 +397,7 @@ ssize_t send_disorder(int sfd,
         uniperror("send");
     }
     else wait_send_if_support(sfd);
-    
+
     if (setttl(sfd, params.def_ttl, fa) < 0) {
         return -1;
     }
@@ -406,10 +406,10 @@ ssize_t send_disorder(int sfd,
 
 
 ssize_t send_late_oob(int sfd, char *buffer,
-        ssize_t n, long pos, int fa, char *c)
+                      ssize_t n, long pos, int fa, char *c)
 {
     int bttl = 1;
-    
+
     if (setttl(sfd, bttl, fa) < 0) {
         return -1;
     }
@@ -425,10 +425,10 @@ ssize_t send_late_oob(int sfd, char *buffer,
 
 
 ssize_t desync(int sfd, char *buffer, size_t bfsize,
-        ssize_t n, ssize_t offset, struct sockaddr *dst, int dp_c)
+               ssize_t n, ssize_t offset, struct sockaddr *dst, int dp_c)
 {
     struct desync_params dp = params.dp[dp_c];
-    
+
     char *host = 0;
     int len = 0, type = 0;
     int fa = get_family(dst);
@@ -455,7 +455,7 @@ ssize_t desync(int sfd, char *buffer, size_t bfsize,
         long lp = 0;
         for (int i = 0; i < dp.tlsrec_n; i++) {
             struct part part = dp.tlsrec[i];
-            
+
             long pos = part.pos + i * 5;
             if (part.flag == OFFSET_SNI) {
                 pos += (host - buffer - 5);
@@ -467,8 +467,8 @@ ssize_t desync(int sfd, char *buffer, size_t bfsize,
                 LOG(LOG_E, "tlsrec cancel: %ld < %ld\n", pos, lp);
                 break;
             }
-            if (!part_tls(buffer + lp, 
-                    bfsize - lp, n - lp, pos - lp)) {
+            if (!part_tls(buffer + lp,
+                          bfsize - lp, n - lp, pos - lp)) {
                 LOG(LOG_E, "tlsrec error: pos=%ld, n=%zd\n", pos, n);
                 break;
             }
@@ -478,28 +478,28 @@ ssize_t desync(int sfd, char *buffer, size_t bfsize,
         }
     }
     // desync
-    #ifdef __linux__
+#ifdef __linux__
     if (dp.drop_sack && drop_sack(sfd)) {
         return -1;
     }
-    #endif
+#endif
     long lp = offset;
-    
+
     for (int i = 0; i < dp.parts_n; i++) {
         struct part part = dp.parts[i];
-        
+
         // change pos
         long pos = part.pos;
         if (part.flag == OFFSET_SNI) {
-            if (type != IS_HTTPS) 
+            if (type != IS_HTTPS)
                 continue;
-            else 
+            else
                 pos += (host - buffer);
         }
         else if (part.flag == OFFSET_HOST) {
-            if (type != IS_HTTP) 
+            if (type != IS_HTTP)
                 continue;
-            else 
+            else
                 pos += (host - buffer);
         }
         else if (pos < 0 || part.flag == OFFSET_END) {
@@ -516,44 +516,44 @@ ssize_t desync(int sfd, char *buffer, size_t bfsize,
         // send part
         ssize_t s = 0;
         switch (part.m) {
-            #ifdef FAKE_SUPPORT
+#ifdef FAKE_SUPPORT
             case DESYNC_FAKE:
                 if (pos != lp) s = send_fake(sfd, 
                     buffer + lp, type, pos - lp, fa, &dp);
                 break;
-            #endif
+#endif
             case DESYNC_DISORDER:
-                s = send_disorder(sfd, 
-                    buffer + lp, pos - lp, fa);
+                s = send_disorder(sfd,
+                                  buffer + lp, pos - lp, fa);
                 break;
-            
+
             case DESYNC_OOB:
-                s = send_oob(sfd, 
-                    buffer + lp, n - lp, pos - lp, dp.oob_char);
+                s = send_oob(sfd,
+                             buffer + lp, n - lp, pos - lp, dp.oob_char);
                 break;
-                
+
             case DESYNC_DISOOB:
-                s = send_late_oob(sfd, 
-                    buffer + lp, n - lp, pos - lp, fa, dp.oob_char);
+                s = send_late_oob(sfd,
+                                  buffer + lp, n - lp, pos - lp, fa, dp.oob_char);
                 break;
-                
+
             case DESYNC_SPLIT:
             case DESYNC_NONE:
                 s = send(sfd, buffer + lp, pos - lp, 0);
                 wait_send_if_support(sfd);
                 break;
-                
+
             default:
                 return -1;
         }
         LOG(LOG_S, "split: pos=%ld-%ld (%zd), m: %s\n", lp, pos, s, demode_str[part.m]);
-        
+
         if (s < 0) {
             if (get_e() == EAGAIN) {
                 return lp;
             }
             return -1;
-        } 
+        }
         else if (s != (pos - lp)) {
             LOG(LOG_E, "%zd != %ld\n", s, pos - lp);
             return lp + s;
@@ -578,8 +578,8 @@ ssize_t desync(int sfd, char *buffer, size_t bfsize,
 int post_desync(int sfd, int dp_c)
 {
     struct desync_params *dp = &params.dp[dp_c];
-    
-    #ifdef __linux__
+
+#ifdef __linux__
     if (dp->drop_sack) {
         if (setsockopt(sfd, SOL_SOCKET, 
                 SO_DETACH_FILTER, &dp_c, sizeof(dp_c)) == -1) {
@@ -587,17 +587,32 @@ int post_desync(int sfd, int dp_c)
             return -1;
         }
     }
-    #endif
+#endif
     return 0;
+}
+
+static ssize_t sendto_compat(int sfd, const void *buf, size_t len, int flags,
+                             const struct sockaddr *dest_addr, socklen_t addrlen) {
+    // Check if socket is connected
+    struct sockaddr_storage peer;
+    socklen_t peer_len = sizeof(peer);
+
+    if (getpeername(sfd, (struct sockaddr*)&peer, &peer_len) == 0) {
+        // Socket is connected - use send() and ignore dest_addr
+        return send(sfd, buf, len, flags);
+    } else {
+        // Socket not connected - use sendto()
+        return sendto(sfd, buf, len, flags, dest_addr, addrlen);
+    }
 }
 
 
 ssize_t desync_udp(int sfd, char *buffer, size_t bfsize,
-        ssize_t n, struct sockaddr *dst, int dp_c)
+                   ssize_t n, struct sockaddr *dst, int dp_c)
 {
     struct desync_params *dp = &params.dp[dp_c];
     int fa = get_family(dst);
-    
+
     if (dp->udp_fake_count != 0) {
         struct packet pkt;
         if (dp->fake_data.data) {
@@ -607,7 +622,7 @@ ssize_t desync_udp(int sfd, char *buffer, size_t bfsize,
             pkt = fake_udp;
         }
         if (dp->fake_offset) {
-            if (pkt.size > dp->fake_offset) { 
+            if (pkt.size > dp->fake_offset) {
                 pkt.size -= dp->fake_offset;
                 pkt.data += dp->fake_offset;
             }
@@ -618,8 +633,7 @@ ssize_t desync_udp(int sfd, char *buffer, size_t bfsize,
             return -1;
         }
         for (int i = 0; i < dp->udp_fake_count; i++) {
-            ssize_t len = sendto(sfd, pkt.data, 
-                pkt.size, 0, dst, sizeof(struct sockaddr_in6));
+            ssize_t len = sendto_compat(sfd, pkt.data, pkt.size, 0, dst, sizeof(struct sockaddr_in6));
             if (len < 0) {
                 uniperror("send");
                 return -1;
@@ -629,6 +643,6 @@ ssize_t desync_udp(int sfd, char *buffer, size_t bfsize,
             return -1;
         }
     }
-    return sendto(sfd, buffer, n, 0, 
-        dst, sizeof(struct sockaddr_in6));
+    return sendto_compat(sfd, buffer, n, 0,
+                         dst, sizeof(struct sockaddr_in6));
 }
