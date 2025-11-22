@@ -53,6 +53,16 @@ int get_family(struct sockaddr *dst)
 int setttl(int fd, int ttl, int family) {
     int _ttl = ttl;
 
+    // Get the actual socket family, not the address family
+    struct sockaddr_storage ss;
+    socklen_t ss_len = sizeof(ss);
+    int actual_family = family;
+
+    // Check what family the socket actually is
+    if (getsockname(fd, (struct sockaddr*)&ss, &ss_len) == 0) {
+        actual_family = ss.ss_family;
+    }
+
     if (family == AF_INET) {
         if (setsockopt(fd, IPPROTO_IP,
                        IP_TTL, (char *)&_ttl, sizeof(_ttl)) < 0) {
