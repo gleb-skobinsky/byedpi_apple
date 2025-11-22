@@ -7,19 +7,19 @@
 #include "mpool.h"
 
 #ifdef _WIN32
-    #include <ws2tcpip.h>
+#include <ws2tcpip.h>
 #else
-    #include <arpa/inet.h>
-    #include <netinet/in.h>
-    #include <unistd.h>
-    #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <sys/socket.h>
 #endif
 
-#if defined(__linux__) || defined(_WIN32)
+#if defined(__linux__) || defined(_WIN32) || defined(__APPLE__)
 #define FAKE_SUPPORT 1
 #define TIMEOUT_SUPPORT 1
 #endif
-    
+
 #define OFFSET_SNI 1
 #define OFFSET_HOST 2
 #define OFFSET_END 3
@@ -55,8 +55,8 @@ struct part {
 };
 
 struct packet {
-     ssize_t size;
-     char  *data;
+    ssize_t size;
+    char  *data;
 };
 
 struct desync_params {
@@ -69,19 +69,19 @@ struct desync_params {
     int fake_offset;
     char drop_sack;
     char oob_char[2];
-    
+
     int parts_n;
     struct part *parts;
-    
+
     int mod_http;
     int tlsrec_n;
     struct part *tlsrec;
-    
+
     int proto;
     int detect;
     struct mphdr *hosts;
     uint16_t pf[2];
-    
+
     char *file_ptr;
     ssize_t file_size;
 };
@@ -93,7 +93,7 @@ struct params {
     char wait_send;
     int def_ttl;
     char custom_ttl;
-    
+
     char tfo;
     unsigned int timeout;
     long cache_ttl;
@@ -106,7 +106,7 @@ struct params {
     struct sockaddr_in6 baddr;
     struct sockaddr_in6 laddr;
     struct mphdr *mempool;
-    
+
     char *protect_path;
 };
 

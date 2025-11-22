@@ -184,11 +184,25 @@ ssize_t send_fake(int sfd, char *buffer,
         else pkt.size = 0;
     }
     
-    int ffd = memfd_create("name", 0);
+    // *** PLATFORM-SPECIFIC: Create temporary file descriptor ***
+    int ffd = -1;
+#ifdef __linux__
+    // Linux: use memfd_create for in-memory file
+    ffd = memfd_create("name", 0);
     if (ffd < 0) {
         uniperror("memfd_create");
         return -1;
     }
+#else
+    // macOS/BSD: use temporary file
+    char temp_path[] = "/tmp/byedpi_fake_XXXXXX";
+    ffd = mkstemp(temp_path);
+    if (ffd < 0) {
+        uniperror("mkstemp");
+        return -1;
+    }
+    unlink(temp_path);  // Delete immediately, fd remains valid
+#endif
     char *p = 0;
     ssize_t len = -1;
     
@@ -230,7 +244,19 @@ ssize_t send_fake(int sfd, char *buffer,
             break;
         }
         
+        // *** PLATFORM-SPECIFIC: sendfile ***
+#ifdef __linux__
+        // Linux: sendfile(out_fd, in_fd, offset, count)
         len = sendfile(sfd, ffd, 0, pos);
+#else
+        // macOS/BSD: sendfile(in_fd, out_fd, offset, len, hdtr, flags)
+        off_t sent = pos;
+        if (sendfile(ffd, sfd, 0, &sent, NULL, 0) < 0) {
+            len = -1;
+        } else {
+            len = sent;
+        }
+#endif
         if (len < 0) {
             uniperror("sendfile");
             break;
